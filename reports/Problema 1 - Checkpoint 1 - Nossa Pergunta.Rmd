@@ -18,24 +18,39 @@ library(here)
 theme_set(theme_bw())
 ```
 
-Analisaremos os episÃ³dios das sÃ©ries Vikings, Game of Thrones. 
+Analisaremos os episódios da primeira até a quarta temporada das séries Vikings e Game of Thrones.
 ```{r}
-data = read_csv(here("data/series_from_imdb.csv"),
-                   progress = FALSE,
-                   col_types = cols(.default = col_double(), 
+data = read_csv(here("data/series_from_imdb.csv"), 
+                    progress = FALSE,
+                    col_types = cols(.default = col_double(), 
                                      series_name = col_character(), 
                                      episode = col_character(), 
                                      url = col_character(),
-                                     season = col_character())) %>%
-  filter(series_name %in% c("Vikings", "Game of Thrones"))
+                                     season = col_character())) %>% 
+    filter(series_name %in% c("Vikings", "Game of Thrones")) %>%
+    filter(season %in% c("1", "2", "3","4"))
 
 ```
 
 
+Aqui percebemos a diferença na quantidade de usuários que votaram em cada uma das séries separados por temporada. Fica claro que uma das séries possui mais expectadores que utilizam o IMDB, dessa forma as análises a seguir vão buscar levar isso em conta.
 ```{r}
 data %>% 
-    ggplot(aes(x = season, y = user_rating, color = series_name)) + 
-    geom_jitter(width = .05) +
-    ylim(5, 10) + 
-    labs(x ="Temporadas", y = "AvaliaÃ§Ã£o no IMDB")
+    ggplot(aes(x = season_ep, y = user_votes, color = series_name))  + 
+    geom_line() + 
+    geom_point() +
+    facet_wrap(~ season) +
+    labs(x = "Episodios", y = "Quantidade de votos", color = "Séries")
 ```
+
+Nos gráficos abaixo podemos verificar qual das séries é mais bem avaliada a cada temporada.
+Assim fica claro ao leitor que "Game of Thrones" é, disparadamente, mais bem avaliada do que "Vikings". No entanto, se compararmos estes com os anteriores, podemos perceber que os pontos em que os episódios possuem uma nota muito maior que os demais se dá ao aumento da quantidade de votos.
+```{r}
+data %>%
+  ggplot(aes(x = season_ep , y = user_rating , color = series_name)) +
+  geom_line() +
+  geom_point() +
+  facet_wrap(~season) +
+  labs(x = "Episódio", y = "Nota do Episódio", color = "Séries" )
+```
+Dessa forma, considerando as discrepâncias na quantidade de votos de alguns pontos especifícos, podemos afirmar que a série que possui maior variação entre as notas dos episódios é "Vikings", sendo, dessa forma a mais irregular. 
