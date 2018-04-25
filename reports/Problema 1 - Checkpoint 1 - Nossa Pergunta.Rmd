@@ -28,29 +28,38 @@ data = read_csv(here("data/series_from_imdb.csv"),
                                      url = col_character(),
                                      season = col_character())) %>% 
     filter(series_name %in% c("Vikings", "Game of Thrones")) %>%
-    filter(season %in% c("1", "2", "3","4"))
+    filter(season %in% 1:4)
 
 ```
 
 
-Aqui percebemos a diferença na quantidade de usuários que votaram em cada uma das séries separados por temporada. Fica claro que uma das séries possui mais expectadores que utilizam o IMDB, dessa forma as análises a seguir vão buscar levar isso em conta.
+Aqui percebemos a diferença na quantidade de usuários que votaram em cada uma das séries a cada temporada. Fica claro que uma das séries possui mais expectadores que utilizam o IMDB, dessa forma as análises a seguir vão buscar levar isso em conta.
 ```{r}
 data %>% 
-    ggplot(aes(x = season_ep, y = user_votes, color = series_name))  + 
+    ggplot(mapping = aes(x = season_ep, 
+               y = user_votes,
+               color = series_name))  + 
     geom_line() + 
     geom_point() +
     facet_wrap(~ season) +
-    labs(x = "Episodios", y = "Quantidade de votos", color = "Séries")
+    labs(x = "Episodios", 
+         y = "Quantidade de votos", 
+         color = "Séries")
 ```
 
 Nos gráficos abaixo podemos verificar qual das séries é mais bem avaliada a cada temporada.
-Assim fica claro ao leitor que "Game of Thrones" é, disparadamente, mais bem avaliada do que "Vikings". No entanto, se compararmos estes com os anteriores, podemos perceber que os pontos em que os episódios possuem uma nota muito maior que os demais se dá ao aumento da quantidade de votos.
+Assim ao observarmos que "Game of Thrones" possui quase que sua totalidade de pontos acima dos pontos da série "Vikings", ou seja, os episódios da primeira são mais bem avaliados do que os episódios da segunda, respectivamente. 
 ```{r}
 data %>%
-  ggplot(aes(x = season_ep , y = user_rating , color = series_name)) +
+  ggplot(mapping = aes(x = season_ep, 
+                       y = user_rating, 
+                       color = series_name)) +
   geom_line() +
   geom_point() +
   facet_wrap(~season) +
-  labs(x = "Episódio", y = "Nota do Episódio", color = "Séries" )
+  labs(x = "Episódio",
+       y = "Nota do Episódio",
+       color = "Séries" )
 ```
-Dessa forma, considerando as discrepâncias na quantidade de votos de alguns pontos especifícos, podemos afirmar que a série que possui maior variação entre as notas dos episódios é "Vikings", sendo, dessa forma a mais irregular. 
+Ao compararmos os gráficos acima, podemos notar que embora tenha uma quantidade quase que igual de votos em cada um dos episódios, a série "Vikings", possui uma discrepância relativamente grande nas notas dos seus episódios. Contudo, "Game of Thrones" possui notas mais estáveis, os pontos que se destacam por serem muito diferentes dos demais podem ser justificados pelo aumento da quantidade de votos nesses mesmos episódios.
+Dessa forma, tentaremos chegar a uma análise mais precisa abaixo.
