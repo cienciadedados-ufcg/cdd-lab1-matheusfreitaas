@@ -3,11 +3,11 @@ title: "Problema 1 - Checkpoint 1 - Nossa Pergunta"
 author: "Matheus Freitas"
 date: "23 de abril de 2018"
 output:
-  html_notebook:
-    toc: yes
-    toc_float: yes
   html_document:
     df_print: paged
+    toc: yes
+    toc_float: yes
+  html_notebook:
     toc: yes
     toc_float: yes
 ---
@@ -15,6 +15,7 @@ output:
 ```{r setup, echo=FALSE, warning=FALSE, message=FALSE}
 library(tidyverse)
 library(here)
+library(raster)
 theme_set(theme_bw())
 ```
 
@@ -62,4 +63,14 @@ data %>%
        color = "Séries" )
 ```
 Ao compararmos os gráficos acima, podemos notar que embora tenha uma quantidade quase que igual de votos em cada um dos episódios, a série "Vikings", possui uma discrepância relativamente grande nas notas dos seus episódios. Contudo, "Game of Thrones" possui notas mais estáveis, os pontos que se destacam por serem muito diferentes dos demais podem ser justificados pelo aumento da quantidade de votos nesses mesmos episódios.
-Dessa forma, tentaremos chegar a uma análise mais precisa abaixo.
+Contudo, essa não é uma análise precisa.Tentaremos chegar a um resultado mais correto abaixo:
+
+```{r}
+vikingsUserRating = filter(data, series_name == "Vikings")$user_rating
+gotUserRating = filter(data, series_name == "Game of Thrones")$user_rating
+
+data %>%
+  summarise(desvioPadrao_vikings = sd(vikingsUserRating),
+            desvioPadrao_got = sd(gotUserRating))
+```
+Analisando esses desvios padrões relativos aos votos dos usuários para cada uma das séries, podemos chegar a conclusão que, devido ao desvio da série "Game of Thrones" ser maior, as notas dos seus episódios são as que mais variam.
