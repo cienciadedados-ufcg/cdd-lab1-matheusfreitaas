@@ -3,11 +3,11 @@ title: "Problema 1 - Checkpoint 1 - Nossa Pergunta"
 author: "Matheus Freitas"
 date: "23 de abril de 2018"
 output:
-  html_document:
-    df_print: paged
+  html_notebook:
     toc: yes
     toc_float: yes
-  html_notebook:
+  html_document:
+    df_print: paged
     toc: yes
     toc_float: yes
 ---
@@ -74,3 +74,41 @@ data %>%
             desvioPadrao_got = sd(gotUserRating))
 ```
 Analisando esses desvios padrões relativos aos votos dos usuários para cada uma das séries, podemos chegar a conclusão que, devido ao desvio da série "Game of Thrones" ser maior, as notas dos seus episódios são as que mais variam.
+
+Agora, procuramos responder as seguintes perguntas:
+
+1 - Existe, em cada uma das séries, um episódio que possui, a cada temporada, mais avaliações que os demais? Ex: toda temporada o ep 9  possui mais avaliações.
+
+2 - Inícios e finais de temporadas são mais amados ou mais odiados?
+
+Para a primeira pergunta podemos observar os seguintes gráficos, que já foram mostrados no começo desse documento:
+```{r}
+data %>%
+  ggplot(mapping = aes(x = season_ep,
+                       y = user_votes,
+                       color = series_name)) +
+  geom_point() +
+  geom_line() + 
+  facet_wrap(~season) +
+  labs(x = "Episódio da temporada",
+       y = "Número de Avaliações",
+       colour = "Série")
+```
+
+Para a série "Game of Thrones" podemos notar que da primeira até a terceira temporada, o episódio mais votado é o nono, esse padrão é quebrado na quarta temporada na qual os episódios mais votados são os 2º, 6º e 8º.No caso da série "Vikings", não percebemos nenhum tipo de padrão, a quantidade de votos em si segue uma linearidade, quase que, do começo ao fim. 
+
+Para a segunda pergunta, podemos observar os seguintes gráficos, já mostrados no começo do documento(segundo conjunto de gráficos):
+
+```{r}
+data %>%
+  ggplot(mapping = aes(x = season_ep, 
+                       y = user_rating, 
+                       color = series_name)) +
+  geom_line() +
+  geom_point() +
+  facet_wrap(~season) +
+  labs(x = "Episódio",
+       y = "Nota do Episódio",
+       color = "Séries" )
+```
+Podemos observars que na em "Game of Thrones", existe uma tendência que o final da temporada, mais precisamente o episódio nove, seja mais bem avaliado que os demais episódios, ou seja, mais amado. No caso de "Vikings", podemso dizer que os primeiros episódios estão na média ou acima dos mais amados e os finais também estão geralmente associados a boas avaliações. 
