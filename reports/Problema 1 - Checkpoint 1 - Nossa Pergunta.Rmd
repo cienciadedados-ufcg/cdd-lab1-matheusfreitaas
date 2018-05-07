@@ -3,11 +3,11 @@ title: "Problema 1 - Checkpoint 1 - Nossa Pergunta"
 author: "Matheus Freitas"
 date: "23 de abril de 2018"
 output:
-  html_notebook:
-    toc: yes
-    toc_float: yes
   html_document:
     df_print: paged
+    toc: yes
+    toc_float: yes
+  html_notebook:
     toc: yes
     toc_float: yes
 ---
@@ -19,37 +19,73 @@ library(raster)
 theme_set(theme_bw())
 ```
 
-Analisaremos os episódios da primeira até a quarta temporada das séries Vikings e Game of Thrones.
+# Panorama Geral
+
 ```{r}
-data = read_csv(here("data/series_from_imdb.csv"), 
+data_all <- read_csv(here("data/series_from_imdb.csv"), 
                     progress = FALSE,
                     col_types = cols(.default = col_double(), 
                                      series_name = col_character(), 
                                      episode = col_character(), 
                                      url = col_character(),
-                                     season = col_character())) %>% 
+                                     season = col_character()))
+
+n_series <- data_all %>% 
+    group_by(series_name) %>%
+    summarise(n()) %>%
+    nrow()
+```
+Nesta anÃ¡lise usaremos os dados coletados do [IMDB](http://www.imbd.com/). Ao todo temos a avaliaÃ§Ã£o de `r data_all %>% nrow()` episÃ³dios de `r n_series` sÃ©ries diferentes mas aqui usaremos um subconjunto composto pelas sÃ©ries **Vikings** e **Game of Thrones**, considerando as quatro primeiras temporadas das duas sÃ©ries.
+
+```{r}
+data <- data_all %>%
     filter(series_name %in% c("Vikings", "Game of Thrones")) %>%
     filter(season %in% 1:4)
-
 ```
 
+O grÃ¡fico abaixo compara o nÃºmero de votos por episÃ³dio de cada temporada.
 
-Aqui percebemos a diferença na quantidade de usuários que votaram em cada uma das séries a cada temporada. Fica claro que uma das séries possui mais expectadores que utilizam o IMDB, dessa forma as análises a seguir vão buscar levar isso em conta.
 ```{r}
 data %>% 
     ggplot(mapping = aes(x = season_ep, 
                y = user_votes,
-               color = series_name))  + 
+               color = series_name)) + 
     geom_line() + 
     geom_point() +
-    facet_wrap(~ season) +
+    facet_wrap(~ season, scales = "free_x") +
     labs(x = "Episodios", 
          y = "Quantidade de votos", 
-         color = "Séries")
-```
+         color = "SÃ©ries")
 
-Nos gráficos abaixo podemos verificar qual das séries é mais bem avaliada a cada temporada.
-Assim ao observarmos que "Game of Thrones" possui quase que sua totalidade de pontos acima dos pontos da série "Vikings", ou seja, os episódios da primeira são mais bem avaliados do que os episódios da segunda, respectivamente. 
+media_votos <- data %>%
+    group_by(series_name) %>%
+    summarise(media = mean(user_votes))
+
+proporcao_medias <- media_votos$media[1] / media_votos$media[2]
+```
+Aqui percebemos a diferenÃ§a na quantidade de usuÃ¡rios que votaram em cada uma das sÃ©ries a cada temporada. Considerando todos os espisÃ³dio que estamos analisando o nÃºmero mÃ©dio de usuÃ¡rios que avaliam os episÃ³dios de Game of Thrones Ã© `r round(proporcao_medias, 2)` maior que o dos que avaliam Vikings, o que deixa claro que GoT possui mais expectadores que utilizam o IMDB, dessa forma as anÃ¡lises a seguir vÃ£o buscar levar isso em conta.
+
+# Quem Ã© melhor avaliada?
+
+```{r}
+data %>%
+  ggplot(mapping = aes(x = series_name, 
+                       y = user_rating,
+                       color = series_name)) +
+    geom_boxplot() +
+    geom_jitter(alpha = 0.5) +
+    theme(legend.position="none") +
+    labs(x = "SÃ©rie",
+         y = "Nota do episÃ³dio")
+
+mediana_notas <- data %>%
+    group_by(series_name) %>%
+    summarise(media = median(user_rating))
+
+```
+O boxplot acima podemos verificar que Game of Thrones Ã© melhor avaliada que Vikings, podemos observar isto atravÃ©s da mediana da avaliaÃ§Ã£o de cada uma das sÃ©ries que para GoT Ã© de `r mediana_notas$media[1]` e para Vikings Ã© `r mediana_notas$media[2]`.
+
+Nos grÃ¡ficos abaixo podemos verificar qual das sÃ©ries Ã© mais bem avaliada a cada temporada.
 ```{r}
 data %>%
   ggplot(mapping = aes(x = season_ep, 
@@ -58,30 +94,39 @@ data %>%
   geom_line() +
   geom_point() +
   facet_wrap(~season) +
-  labs(x = "Episódio",
-       y = "Nota do Episódio",
-       color = "Séries" )
+  labs(x = "EpisÃ³dio",
+       y = "Nota do EpisÃ³dio",
+       color = "SÃ©ries" )
 ```
-Ao compararmos os gráficos acima, podemos notar que embora tenha uma quantidade quase que igual de votos em cada um dos episódios, a série "Vikings", possui uma discrepância relativamente grande nas notas dos seus episódios. Contudo, "Game of Thrones" possui notas mais estáveis, os pontos que se destacam por serem muito diferentes dos demais podem ser justificados pelo aumento da quantidade de votos nesses mesmos episódios.
-Contudo, essa não é uma análise precisa.Tentaremos chegar a um resultado mais correto abaixo:
+Assim ao observarmos que **Game of Thrones** possui quase que sua totalidade de pontos acima dos pontos da sÃ©rie **Vikings**, ou seja, os episÃ³dios da primeira sÃ£o mais bem avaliados do que os episÃ³dios da segunda, respectivamente. 
+
+>> O parÃ¡grafo abaixo precisa ser revisado, jÃ¡ que os valores do desvio padrÃ£o mostram o contrÃ¡rio.
+
+Ao compararmos os grÃ¡ficos acima, podemos notar que embora tenha uma quantidade quase que igual de votos em cada um dos episÃ³dios, a sÃ©rie "Vikings", possui uma discrepÃ¢ncia relativamente grande nas notas dos seus episÃ³dios. Contudo, "Game of Thrones" possui notas mais estÃ¡veis, os pontos que se destacam por serem muito diferentes dos demais podem ser justificados pelo aumento da quantidade de votos nesses mesmos episÃ³dios.
+
+Contudo, essa nÃ£o Ã© uma anÃ¡lise precisa. Para tal observemos os valores do *Desvio padrÃ£o* da avaliaÃ§Ã£o de cada sÃ©rie na tabela abaixo:
 
 ```{r}
 vikingsUserRating = filter(data, series_name == "Vikings")$user_rating
 gotUserRating = filter(data, series_name == "Game of Thrones")$user_rating
 
 data %>%
-  summarise(desvioPadrao_vikings = sd(vikingsUserRating),
-            desvioPadrao_got = sd(gotUserRating))
+  summarise(Vikings = round(sd(vikingsUserRating), 2),
+            GoT = round(sd(gotUserRating),2)) %>%
+    knitr::kable()
 ```
-Analisando esses desvios padrões relativos aos votos dos usuários para cada uma das séries, podemos chegar a conclusão que, devido ao desvio da série "Game of Thrones" ser maior, as notas dos seus episódios são as que mais variam.
 
-Agora, procuramos responder as seguintes perguntas:
+O **Desvio PadrÃ£o**: Ã‰ um parÃ¢metro estatÃ­stico que indica o grau de variaÃ§Ã£o de um conjunto de elementos. No nosso caso, quanto mais dispersas forem as notas, maior o desvio padrÃ£o.
 
-1 - Existe, em cada uma das séries, um episódio que possui, a cada temporada, mais avaliações que os demais? Ex: toda temporada o ep 9  possui mais avaliações.
+Analisando esses desvios padrÃµes relativos aos votos dos usuÃ¡rios para cada uma das sÃ©ries, podemos chegar a conclusÃ£o que, devido ao desvio da sÃ©rie "Game of Thrones" ser maior, as notas dos seus episÃ³dios sÃ£o as que mais variam.
 
-2 - Inícios e finais de temporadas são mais amados ou mais odiados?
 
-Para a primeira pergunta podemos observar os seguintes gráficos, que já foram mostrados no começo desse documento:
+# Existe, em cada uma das sÃ©ries, um episÃ³dio que possui, a cada temporada, mais avaliaÃ§Ãµes que os demais? Ex: toda temporada o ep 9 possui mais avaliaÃ§Ãµes.
+
+Para a primeira pergunta podemos observar os seguintes grÃ¡ficos, que jÃ¡ foram mostrados no comeÃ§o desse documento:
+
+>> Quando optar por reutilizar um grÃ¡fico que jÃ¡ foi mostrado antes Ã© melhor guardar ele em uma variÃ¡vel e chamar essa variÃ¡vel onde vocÃª deseja plotar; Evita cÃ³digo repetido.
+
 ```{r}
 data %>%
   ggplot(mapping = aes(x = season_ep,
@@ -90,14 +135,16 @@ data %>%
   geom_point() +
   geom_line() + 
   facet_wrap(~season) +
-  labs(x = "Episódio da temporada",
-       y = "Número de Avaliações",
-       colour = "Série")
+  labs(x = "EpisÃ³dio da temporada",
+       y = "NÃºmero de AvaliaÃ§Ãµes",
+       colour = "SÃ©rie")
 ```
 
-Para a série "Game of Thrones" podemos notar que da primeira até a terceira temporada, o episódio mais votado é o nono, esse padrão é quebrado na quarta temporada na qual os episódios mais votados são os 2º, 6º e 8º.No caso da série "Vikings", não percebemos nenhum tipo de padrão, a quantidade de votos em si segue uma linearidade, quase que, do começo ao fim. 
+Para a sÃ©rie "Game of Thrones" podemos notar que da primeira atÃ© a terceira temporada, o episÃ³dio mais votado Ã© o nono, esse padrÃ£o Ã© quebrado na quarta temporada na qual os epis?dios mais votados sÃ£o os 2Âº, 6Âº e 8Âº. No caso da sÃ©rie "Vikings", nÃ£o percebemos nenhum tipo de padrÃ£o, a quantidade de votos em si segue uma linearidade, quase que, do comeÃ§o ao fim. 
 
-Para a segunda pergunta, podemos observar os seguintes gráficos, já mostrados no começo do documento(segundo conjunto de gráficos):
+# InÃ­cios e finais de temporadas sÃ£o mais amados ou mais odiados?
+
+Para a segunda pergunta, podemos observar os seguintes grÃ¡ficos, jÃ¡ mostrados no comeÃ§o do documento (segundo conjunto de grÃ¡ficos):
 
 ```{r}
 data %>%
@@ -107,8 +154,8 @@ data %>%
   geom_line() +
   geom_point() +
   facet_wrap(~season) +
-  labs(x = "Episódio",
-       y = "Nota do Episódio",
-       color = "Séries" )
+  labs(x = "EpisÃ³dio",
+       y = "Nota do EpisÃ³dio",
+       color = "SÃ©ries" )
 ```
-Podemos observars que na em "Game of Thrones", existe uma tendência que o final da temporada, mais precisamente o episódio nove, seja mais bem avaliado que os demais episódios, ou seja, mais amado. No caso de "Vikings", podemso dizer que os primeiros episódios estão na média ou acima dos mais amados e os finais também estão geralmente associados a boas avaliações. 
+Podemos observar que em "Game of Thrones", existe uma tendÃªncia que o final da temporada, mais precisamente o episÃ³dio nove, seja mais bem avaliado que os demais episÃ³dios, ou seja, mais amado. No caso de "Vikings", podemos dizer que os primeiros episÃ³dios estÃ£o na mÃ©dia ou acima dos mais amados e os finais tambÃ©m estÃ£o geralmente associados a boas avaliaÃ§Ãµes. 
