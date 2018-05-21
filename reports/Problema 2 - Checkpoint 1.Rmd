@@ -1,0 +1,60 @@
+---
+title: "Problema 2 - Checkpoint 1"
+author: "Matheus Freitas"
+date: "23 de abril de 2018"
+output:
+  html_notebook:
+    toc: yes
+    toc_float: yes
+  html_document:
+    df_print: paged
+    toc: yes
+    toc_float: yes
+---
+
+```{r setup, echo=FALSE, warning=FALSE, message=FALSE}
+library(tidyverse)
+library(here)
+library(plotly)
+theme_set(theme_bw())
+```
+
+
+Nesta análise serão observados os episódios da primeira até a quarta temporada das séries Vikings e Game of Thrones, utilizando dados do IMDB.
+```{r}
+series = read_csv(here("data/series_from_imdb.csv"), 
+                    progress = FALSE,
+                    col_types = cols(.default = col_double(), 
+                                     series_name = col_character(), 
+                                     episode = col_character(), 
+                                     url = col_character(),
+                                     season = col_character())) %>% 
+    filter(series_name %in% c("Vikings", "Game of Thrones")) %>%
+    filter(season %in% 1:4)
+```
+
+
+## Qual das duas séries é a mais bem avaliada? 
+
+```{r}
+p <- ggplot(data = series,
+            mapping = aes(x = season_ep, 
+            y = user_rating,
+            size = user_votes,
+            color = series_name))  + 
+    geom_jitter(alpha = 0.5) +
+    facet_wrap(~season) +
+    labs(x = "Episódio",
+         y = "Nota do Episódio",
+         size = "Quantidade de Votos",
+         color = "Nome da Série")
+
+
+ggplotly(p)
+```
+Nos gráficos acima, que estão divididos por temporadas, podemos observar que em geral os pontos dos episódios que representam a série Game of Thrones estão acima dos pontos que representam a série Vikings, dessa forma, pode-se concluir que a dentre as duas, GOT é a mais bem avaliada pelos usuários do IMDB. Alguns outras características interessantes de serem observadas são:
+    - A quantidade de votos que cada episódio recebe: 
+        Esta informação esta representada pelo tamanho dos pontos e pode ser quantificada ao se colocar o cursor em cima do ponto desejado no valor de "user_votes". A diferença de tamanho dos pontos vermelhos para os azuis é expressiva.
+    - Nas três primeiras temporadas de Game of Thrones os episódios anteriores ao último são sempre os mais altos no gráfico, ou seja, possuem melhor avaliação.
+    - A partir da segunda temporada, podemos observar que os episódios de numéro dez, estão sempre acima da média.
+
