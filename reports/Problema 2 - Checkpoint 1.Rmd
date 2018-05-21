@@ -1,13 +1,13 @@
 ---
 title: "Problema 2 - Checkpoint 1"
 author: "Matheus Freitas"
-date: "23 de abril de 2018"
+date: "21 de Maio de 2018"
 output:
-  html_notebook:
-    toc: yes
-    toc_float: yes
   html_document:
     df_print: paged
+    toc: yes
+    toc_float: yes
+  html_notebook:
     toc: yes
     toc_float: yes
 ---
